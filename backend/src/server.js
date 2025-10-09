@@ -36,10 +36,13 @@ async function startServer() {
 
     // 🧩 Porta dinâmica (Render usa variável PORT)
     const PORT = process.env.PORT || 3000;
+    const BASE_URL =
+      process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+
     app.listen(PORT, () => {
       console.log("==============================================");
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
-      console.log(`📘 Swagger: http://localhost:${PORT}/docs`);
+      console.log(`📘 Swagger: ${BASE_URL}/docs`);
       console.log("==============================================");
     });
   } catch (err) {
