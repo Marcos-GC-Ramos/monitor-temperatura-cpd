@@ -1,20 +1,19 @@
 import pkg from "pg";
 const { Pool } = pkg;
 
-// Detecta se está no ambiente de produção (Render)
-const isProduction = process.env.NODE_ENV === "production";
-
-// Prioriza DATABASE_URL (usado no Render + Neon)
+const isRender = !!process.env.DATABASE_URL;
 let pool;
 
-if (process.env.DATABASE_URL) {
+// 🌐 Ambiente Render (Neon Cloud)
+if (isRender) {
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Obrigatório pro Neon
+    ssl: { rejectUnauthorized: false }, // ⚠️ Obrigatório para o Neon
   });
-  console.log("🌐 Usando conexão externa (Neon/PostgreSQL remoto)");
-} else {
-  // Fallback: conexão local via Docker Compose
+  console.log("🌐 Conectando ao banco remoto (Neon/PostgreSQL)...");
+} 
+// 🐋 Ambiente local (Docker)
+else {
   pool = new Pool({
     user: process.env.PGUSER || "nodeuser",
     host: process.env.PGHOST || "db",
@@ -22,12 +21,14 @@ if (process.env.DATABASE_URL) {
     password: process.env.PGPASSWORD || "123456",
     port: process.env.PGPORT || 5432,
   });
-  console.log("🐘 Usando conexão local (Postgres Docker)");
+  console.log("🐘 Conectando ao banco local (PostgreSQL Docker)...");
 }
 
+// 🔁 Função de verificação de conexão
 export async function conectarBanco() {
   let conectado = false;
   let tentativas = 0;
+
   while (!conectado && tentativas < 10) {
     try {
       tentativas++;
@@ -39,10 +40,12 @@ export async function conectarBanco() {
       await new Promise((r) => setTimeout(r, 3000));
     }
   }
+
   if (!conectado) {
     console.error("❌ Falha ao conectar ao banco de dados.");
     process.exit(1);
   }
 }
 
+// 🔹 Exporta apenas o necessário
 export { pool };

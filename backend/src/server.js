@@ -3,6 +3,7 @@ import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { swaggerDoc } from "./config/swagger.js";
 import { pool, conectarBanco } from "./config/db.js";
+import { migrate } from "./utils/migrate.js";
 import { seedAdmin } from "./utils/seedAdmin.js";
 import loginRoutes from "./routes/login.routes.js";
 import temperaturaRoutes from "./routes/temperatura.routes.js";
@@ -22,24 +23,30 @@ app.use(
   swaggerUi.setup(swaggerDoc, { swaggerOptions: { persistAuthorization: true } })
 );
 
-// Inicialização
-await conectarBanco();
+async function startServer() {
+  try {
+    // Conectar ao banco
+    await conectarBanco();
 
-// 🔹 Cria tabelas se não existirem
-await pool.query(`
-  CREATE TABLE IF NOT EXISTS usuarios (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100),
-    email VARCHAR(100) UNIQUE NOT NULL,
-    senha VARCHAR(255) NOT NULL
-  );
+    // Criar tabelas se não existirem
+    await migrate();
 
-  CREATE TABLE IF NOT EXISTS leituras (
-    id SERIAL PRIMARY KEY,
-    temperatura REAL,
-    data TIMESTAMP DEFAULT NOW(),
-    alarme BOOLEAN
-  );
-`);
+    // Inserir admin padrão, se necessário
+    await seedAdmin();
 
-await seedAdmin();
+    // 🧩 Porta dinâmica (Render usa variável PORT)
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log("==============================================");
+      console.log(`🚀 Servidor rodando na porta ${PORT}`);
+      console.log(`📘 Swagger: http://localhost:${PORT}/docs`);
+      console.log("==============================================");
+    });
+  } catch (err) {
+    console.error("❌ Erro ao iniciar o servidor:", err);
+    process.exit(1);
+  }
+}
+
+// Inicializa tudo
+startServer();
