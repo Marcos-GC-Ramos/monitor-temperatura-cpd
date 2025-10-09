@@ -43,7 +43,3 @@ await pool.query(`
 `);
 
 await seedAdmin();
-
-app.listen(3000, () => {
-  console.log("Swagger: http://localhost:3000/docs");
-});
