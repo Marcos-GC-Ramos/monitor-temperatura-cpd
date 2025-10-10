@@ -1,0 +1,16 @@
+# ===================================
+# 🧩 IGNORAR ARQUIVOS LOCAIS
+# ===================================
+.git
+.gitignore
+node_modules
+npm-debug.log
+docker-compose.yml
+README.md
+data/
+data/postgres/
+.docker/
+.env
+.env.*
+backend/.env
+frontend/.env.local

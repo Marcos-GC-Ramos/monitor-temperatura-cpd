@@ -1,0 +1,57 @@
+services:
+  # 🐘 Banco de dados PostgreSQL
+  db:
+    image: postgres:16
+    container_name: db_monitor
+    restart: always
+    environment:
+      POSTGRES_USER: nodeuser
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: monitor_temperatura
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  # 🚀 Backend Node.js
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: api_monitor
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PGUSER: nodeuser
+      PGPASSWORD: 123456
+      PGDATABASE: monitor_temperatura
+      PGHOST: db
+      PGPORT: 5432
+    volumes:
+      - ./backend/src:/app/src
+    command: ["nodemon", "src/server.js"]
+
+  # 🌐 Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: web_monitor
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: "http://localhost:3000/api"
+    volumes:
+      - ./frontend:/app
+    command: ["npm", "run", "dev"]
+
+volumes:
+  db_data:
