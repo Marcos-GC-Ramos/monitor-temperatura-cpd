@@ -1,0 +1,119 @@
+"use client";
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { login as loginService } from "@/services/authService";
+import { setToken } from "@/lib/auth";
+import { toast } from "sonner";
+import Image from "next/image"
+
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+    const router = useRouter();
+  const [email, setEmail] = useState("admin@cpd.com");
+  const [senha, setSenha] = useState("admin123");
+  const [carregando, setCarregando] = useState(false);
+
+  // 🔑 Faz login e salva token no cookie
+  async function handleLogin() {
+    try {
+      setCarregando(true);
+      const res = await loginService(email, senha);
+
+      // Salva no cookie via helper
+      setToken(res.token);
+
+      toast("Login efetuado com sucesso!");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Falha no login. Verifique suas credenciais.");
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className="overflow-hidden p-0">
+        <CardContent className="grid p-0 md:grid-cols-2">
+          <form className="p-6 md:p-8">
+            <FieldGroup>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <p className="text-muted-foreground text-balance">
+                  Login to your Acme Inc account
+                </p>
+              </div>
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={carregando}
+                  required
+                />
+              </Field>
+              <Field>
+                <div className="flex items-center">
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <a
+                    href="#"
+                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
+                <Input 
+                  id="senha" 
+                  type="password" 
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  disabled={carregando}
+                  required 
+                />
+              </Field>
+              <Field>
+                <Button 
+                 onClick={handleLogin}
+                  disabled={carregando}
+                >{carregando ? "Entrando..." : "Entrar"}
+                </Button>
+              </Field>
+             
+              <FieldDescription className="text-center">
+                Don&apos;t have an account? <a href="#">Sign up</a>
+              </FieldDescription>
+            </FieldGroup>
+          </form>
+          <div className="bg-muted relative hidden md:block">
+            <Image
+              width="1200" 
+              height="1200"
+              src="/placeholder.svg"
+              alt="Image"
+              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+            />
+          </div>
+        </CardContent>
+      </Card>
+      <FieldDescription className="px-6 text-center">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </FieldDescription>
+    </div>
+  )
+}

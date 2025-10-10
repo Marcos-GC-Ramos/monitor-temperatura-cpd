@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -118,5 +119,8 @@
   }
   body {
     @apply bg-background text-foreground;
+      font-family: "Geist", sans-serif;
+      font-optical-sizing: auto;
+      font-style: normal;
   }
 }

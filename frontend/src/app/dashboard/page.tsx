@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getToken, clearToken } from "@/lib/auth";
 import { obterTemperaturas } from "@/services/temperaturaService";
 import type { Leitura } from "@/services/temperaturaService";
@@ -13,17 +13,19 @@ export default function Dashboard() {
   const [leituras, setLeituras] = useState<Leitura[]>([]);
   const router = useRouter();
 
-  async function carregarLeituras() {
+  // ✅ useCallback impede que a função seja recriada a cada renderização
+  const carregarLeituras = useCallback(async () => {
     try {
       const token = getToken();
       if (!token) throw new Error("Token ausente");
+
       const data = await obterTemperaturas(token);
       setLeituras(data);
-      console.log(leituras);
+      console.log("📊 Leituras carregadas:", data);
     } catch {
       toast("⚠️ Erro ao carregar temperaturas");
     }
-  }
+  }, []); // sem dependências (executa só uma vez)
 
   function logout() {
     clearToken();
@@ -32,7 +34,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     carregarLeituras();
-  }, []);
+    // Função opcional para recarregar a lista de temperaturas automaticamente a cada 60s
+    // const interval = setInterval(carregarLeituras, 60000);
+    // return () => clearInterval(interval);
+  }, [carregarLeituras]);
 
   return (
     <main className="flex flex-col items-center min-h-screen bg-gray-100 p-10 gap-6">
@@ -50,6 +55,19 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 w-full max-w-2xl">
+        {leituras.map((item) => (
+          <Card key={item.id}>
+            <CardContent className="p-4 flex justify-between">
+              <span>🌡️ {item.temperatura} °C</span>
+              <span className={item.alarme ? "text-red-500" : "text-green-600"}>
+                {item.alarme ? "🚨 ALARME" : "OK"}
+              </span>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </main>
   );
 }
