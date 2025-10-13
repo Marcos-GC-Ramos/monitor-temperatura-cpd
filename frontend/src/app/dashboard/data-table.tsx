@@ -32,9 +32,7 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconGripVertical,
   IconLayoutColumns,
-  IconPlus,
   IconCircleCheckFilled,
   IconRefresh,
 } from "@tabler/icons-react";
@@ -93,26 +91,6 @@ export const schema = z.object({
   data: z.string(),
   alarme: z.boolean(),
 });
-
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
 
 // As colunas da tabela
 const columns: ColumnDef<Leitura>[] = [
