@@ -33,8 +33,6 @@ export function LoginForm({
 
       // Salva no cookie via helper
       setToken(res.token);
-
-      toast("Login efetuado com sucesso!");
       router.push("/dashboard");
     } catch {
       toast.error("Falha no login. Verifique suas credenciais.");
@@ -50,9 +48,9 @@ export function LoginForm({
           <form className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">VisTemp</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Acme Inc account
+                  Entre com sua conta para continuar
                 </p>
               </div>
               <Field>
@@ -68,15 +66,7 @@ export function LoginForm({
                 />
               </Field>
               <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
                 <Input 
                   id="senha" 
                   type="password" 
@@ -93,10 +83,6 @@ export function LoginForm({
                 >{carregando ? "Entrando..." : "Entrar"}
                 </Button>
               </Field>
-             
-              <FieldDescription className="text-center">
-                Don&apos;t have an account? <a href="#">Sign up</a>
-              </FieldDescription>
             </FieldGroup>
           </form>
           <div className="bg-muted relative hidden md:block">
@@ -111,8 +97,8 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        Ao clicar em entrar, você concorda com nossos <a href="#">Termos de Serviço</a>{" "}
+        e <a href="#">Política de Privacidade</a>.
       </FieldDescription>
     </div>
   )

@@ -16,7 +16,9 @@ export async function migrate() {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leituras (
         id SERIAL PRIMARY KEY,
-        temperatura REAL,
+        temperatura REAL NOT NULL,
+        temperatura_anterior REAL,
+        temperatura_ambiente REAL,
         data TIMESTAMP DEFAULT NOW(),
         alarme BOOLEAN
       );

@@ -24,12 +24,6 @@ import { DataTable } from "./data-table";
 export default function Page() {
   const [leituras, setLeituras] = useState<Leitura[]>([]);
 
-  /**
-   * 📥 Carrega as leituras de temperatura da API
-   * - Obtém o token
-   * - Busca dados no serviço
-   * - Atualiza estado local
-   */
   const carregarLeituras = useCallback(async () => {
     try {
       const token = getToken();
@@ -37,15 +31,13 @@ export default function Page() {
 
       const data = await obterTemperaturas(token);
       setLeituras(data);
+
     } catch (error) {
       toast("⚠️ Erro ao carregar temperaturas");
       console.error(error);
     }
   }, []);
 
-  /**
-   * 🔁 Efeito: carrega dados ao montar e a cada 60s
-   */
   useEffect(() => {
     carregarLeituras();
 
@@ -54,9 +46,6 @@ export default function Page() {
     return () => clearInterval(interval);
   }, [carregarLeituras]);
 
-  /**
-   * 🧱 Layout da página
-   */
   return (
     <SidebarProvider
       style={

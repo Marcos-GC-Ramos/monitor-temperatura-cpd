@@ -12,16 +12,20 @@ const LOGIN_CREDENCIAIS = {
   senha: "admin123",
 };
 
-// Intervalo entre envios (1 minuto)
-const INTERVALO_MS = 60 * 1000;
+const INTERVALO_MS = 60 * 1000; // 1 minuto
+const LIMITE = 65; // temperatura limite para alarme
+const LAT = -3.1190; // Manaus (ajuste se quiser outra cidade)
+const LON = -60.0217;
 
 // ================================================================
 
 let token = null;
 let tokenExpiraEm = null;
+let ultimaTemperatura = null;
 
 console.log("🧠 Simulador de Temperatura CPD iniciado...");
 console.log(`📡 Enviando dados para: ${API_URL}`);
+console.log("🌦️ Consultando temperatura ambiente via Open-Meteo");
 console.log("⏱️ Intervalo: a cada 1 minuto...\n");
 
 // 🔑 Função para autenticar e obter token JWT
@@ -49,6 +53,21 @@ async function autenticar() {
   }
 }
 
+// 🌤️ Função para buscar temperatura ambiente da Open-Meteo
+async function obterTemperaturaAmbiente() {
+  try {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true`
+    );
+    const data = await res.json();
+    return Number(data.current_weather?.temperature ?? null);
+  } catch (error) {
+    console.error("⚠️ Erro ao obter temperatura ambiente:", error.message);
+    return null;
+  }
+}
+
+
 // 🔁 Função para enviar leitura
 async function enviarLeitura() {
   if (!token || Date.now() > tokenExpiraEm) {
@@ -62,9 +81,19 @@ async function enviarLeitura() {
 
   // Gera temperatura entre 30°C e 70°C
   const temperatura = Number((Math.random() * 40 + 30).toFixed(2));
-  const alarme = temperatura > 65;
+  const temperatura_anterior = ultimaTemperatura ?? temperatura;
+  const alarme = temperatura > LIMITE;
 
-  const leitura = { temperatura, alarme };
+  // Busca temperatura ambiente
+  const temperatura_ambiente = await obterTemperaturaAmbiente();
+
+  // Monta objeto de leitura
+  const leitura = {
+    temperatura,
+    temperatura_anterior,
+    temperatura_ambiente,
+    alarme,
+  };
 
   try {
     const response = await fetch(API_URL, {
@@ -82,10 +111,12 @@ async function enviarLeitura() {
 
     const data = await response.json();
     console.log(
-      `🌡️ Enviado -> Temp: ${temperatura}°C | Alarme: ${
-        alarme ? "ATIVADO" : "DESATIVADO"
-      } | ID: ${data?.leitura?.id || "?"}`
+      `🌡️ Enviado -> Atual: ${temperatura}°C | Anterior: ${temperatura_anterior}°C | Ambiente: ${temperatura_ambiente}°C | ` +
+      `Alarme: ${alarme ? "🚨 ATIVADO" : "✅ Desativado"} | ID: ${data?.leitura?.id || "?"}`
     );
+
+    // Atualiza última leitura
+    ultimaTemperatura = temperatura;
   } catch (error) {
     console.error("❌ Erro ao enviar leitura:", error.message);
   }

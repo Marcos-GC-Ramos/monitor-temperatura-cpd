@@ -33,8 +33,9 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconLayoutColumns,
-  IconCircleCheckFilled,
+  IconCircleCheck,
   IconRefresh,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 
 // Componentes de UI (ShadCN)
@@ -115,18 +116,18 @@ const columns: ColumnDef<Leitura>[] = [
       <Badge
         variant="outline"
         className={`px-1.5 inline-flex items-center gap-1 ${
-          row.original.alarme ? "text-red-600" : "text-green-600"
+          row.original.alarme ? "text-[#f54900]" : "text-muted-foreground"
         }`}
         title={row.original.alarme ? "Temperatura acima do limite" : "Temperatura ok"}
       >
         {row.original.alarme ? (
           <>
-            <IconCircleCheckFilled className="h-3.5 w-3.5" aria-hidden="true" />
+            <IconAlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
             Superaquecido
           </>
         ) : (
           <>
-            <IconCircleCheckFilled className="h-3.5 w-3.5" aria-hidden="true" />
+            <IconCircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
             Temperatura ideal
           </>
         )}
@@ -243,45 +244,67 @@ export function DataTable({
     <div
       className="w-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-end mb-6 gap-3 px-4 lg:px-6">
-        <Button variant="outline" size="sm">
-          <IconRefresh />
-          <span className="hidden lg:inline">Recarregar Dados</span>
-        </Button>
+      <div className="flex items-center justify-between mb-6 gap-3 px-4 lg:px-6">
+        <div className="hidden items-center gap-2 lg:flex">
+          <Label htmlFor="rows-per-page" className="text-sm font-medium">
+            Registros por página
+          </Label>
+          <Select
+            value={`${table.getState().pagination.pageSize}`}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value))
+            }}
+          >
+            <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+              <SelectValue
+                placeholder={table.getState().pagination.pageSize}
+              />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <SelectItem key={pageSize} value={`${pageSize}`}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
-                <IconChevronDown />
-              </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <IconLayoutColumns />
+                  <span className="hidden lg:inline">Customize Columns</span>
+                  <span className="lg:hidden">Columns</span>
+                  <IconChevronDown />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+                {table
+                  .getAllColumns()
+                  .filter(
+                    (column) =>
+                      typeof column.accessorFn !== "undefined" &&
+                      column.getCanHide()
                   )
-                })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div
@@ -350,31 +373,8 @@ export function DataTable({
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} registro(s) selecionado(s).
           </div>
+
           <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Registros por página
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value))
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="flex w-fit items-center justify-center text-sm font-medium">
               Página {table.getState().pagination.pageIndex + 1} de{" "}
               {table.getPageCount()}

@@ -23,7 +23,7 @@ export async function criarLeitura(req, res) {
 
 export async function listarLeituras(req, res) {
   try {
-    const { rows } = await pool.query("SELECT * FROM leituras ORDER BY id DESC LIMIT 20");
+    const { rows } = await pool.query("SELECT * FROM leituras ORDER BY id DESC");
     return res.status(200).json(rows);
   } catch (err) {
     console.error("Erro ao buscar leituras:", err.message);
