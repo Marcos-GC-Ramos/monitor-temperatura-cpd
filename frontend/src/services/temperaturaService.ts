@@ -3,6 +3,8 @@ import api from "@/lib/api";
 export interface Leitura {
   id: number;
   temperatura: number;
+  temperatura_anterior: number | null;   
+  temperatura_ambiente: number | null;
   data: string;
   alarme: boolean;
 }

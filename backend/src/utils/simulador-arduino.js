@@ -12,7 +12,8 @@ const LOGIN_CREDENCIAIS = {
   senha: "admin123",
 };
 
-const INTERVALO_MS = 3000; // 1 minuto
+const INTERVALO_MS = 60 * 1000; 
+
 const LIMITE = 65; // temperatura limite para alarme
 const LAT = -3.1190; // Manaus (ajuste se quiser outra cidade)
 const LON = -60.0217;

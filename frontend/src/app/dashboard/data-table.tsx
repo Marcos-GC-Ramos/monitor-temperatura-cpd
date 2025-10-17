@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useEffect } from "react";
-import { z } from "zod";
 
 // Utilitários e bibliotecas externas
 import { CSS } from "@dnd-kit/utilities";
@@ -34,7 +33,6 @@ import {
   IconChevronsRight,
   IconLayoutColumns,
   IconCircleCheck,
-  IconRefresh,
   IconAlertTriangle,
 } from "@tabler/icons-react";
 
@@ -85,14 +83,6 @@ import {
 import { Leitura } from "@/services/temperaturaService";
 export type LeituraType = Leitura;
 
-// Validação de dados da leitura (Zod Schema)
-export const schema = z.object({
-  id: z.number(),
-  temperatura: z.number(),
-  data: z.string(),
-  alarme: z.boolean(),
-});
-
 // As colunas da tabela
 const columns: ColumnDef<Leitura>[] = [
   {
@@ -101,8 +91,8 @@ const columns: ColumnDef<Leitura>[] = [
     cell: ({ row }) => <span className="px-5">{row.original.id}</span>,
   },
   {
-    accessorKey: "temperatura",
-    header: "Temperatura (°C)",
+    accessorKey: "temperatura CPD",
+    header: "Temperatura do CPD (°C)",
     cell: ({ row }) => (
       <Badge variant="outline" className="px-2.5">
         {row.original.temperatura.toFixed(1)} °C
@@ -110,7 +100,16 @@ const columns: ColumnDef<Leitura>[] = [
     ),
   },
   {
-    accessorKey: "alarme",
+    accessorKey: "temperatura ambiente",
+    header: "Clima (°C)",
+    cell: ({ row }) => (
+      <Badge variant="outline" className="px-2.5">
+        {(row.original.temperatura_ambiente ?? 0).toFixed(1)} °C
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "Status",
     header: "Status",
     cell: ({ row }) => (
       <Badge
@@ -135,7 +134,7 @@ const columns: ColumnDef<Leitura>[] = [
     ),
   },
   {
-    accessorKey: "data",
+    accessorKey: "data ocorrencia",
     header: "Data da leitura",
     cell: ({ row }) => (
       <span className="text-sm text-muted-foreground">
@@ -369,10 +368,11 @@ export function DataTable({
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+          <div></div>
+          {/* <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} registro(s) selecionado(s).
-          </div>
+          </div> */}
 
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="flex w-fit items-center justify-center text-sm font-medium">
