@@ -1,9 +1,10 @@
 import { pool } from "../config/db.js";
 
 export async function migrate() {
-  console.log("⚙️  Executando migrações...");
+  console.log("⚙️ Executando migrações...");
 
   try {
+    // Criação das tabelas
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -22,6 +23,17 @@ export async function migrate() {
         data TIMESTAMP DEFAULT NOW(),
         alarme BOOLEAN
       );
+    `);
+
+    // 🔧 Garante que as novas colunas existam mesmo em tabelas antigas
+    await pool.query(`
+      ALTER TABLE leituras
+      ADD COLUMN IF NOT EXISTS temperatura_anterior REAL;
+    `);
+
+    await pool.query(`
+      ALTER TABLE leituras
+      ADD COLUMN IF NOT EXISTS temperatura_ambiente REAL;
     `);
 
     console.log("🧱 Migrações aplicadas com sucesso!");
