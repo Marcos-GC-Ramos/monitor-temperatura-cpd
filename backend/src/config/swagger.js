@@ -63,11 +63,6 @@ export const swaggerDoc = {
         responses: {
           200: {
             description: "Lista paginada de usuários",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/UsuarioListResponse" },
-              },
-            },
           },
           401: { description: "Não autorizado" },
         },
@@ -80,7 +75,6 @@ export const swaggerDoc = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/UsuarioCreateRequest" },
               example: {
                 nome: "Alice Silva",
                 email: "alice@cpd.com",
@@ -92,11 +86,6 @@ export const swaggerDoc = {
         responses: {
           201: {
             description: "Usuário criado",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/UsuarioResponse" },
-              },
-            },
           },
           400: { description: "Dados inválidos" },
           401: { description: "Não autorizado" },
@@ -113,7 +102,6 @@ export const swaggerDoc = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/UsuarioUpdateRequest" },
               example: {
                 id: 42,
                 nome: "Alice S. (atualizado)",
@@ -126,11 +114,6 @@ export const swaggerDoc = {
         responses: {
           200: {
             description: "Usuário atualizado",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/UsuarioResponse" },
-              },
-            },
           },
           400: { description: "Dados inválidos" },
           401: { description: "Não autorizado" },
@@ -146,7 +129,6 @@ export const swaggerDoc = {
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/UsuarioDeleteRequest" },
               example: { id: 42 },
             },
           },
@@ -154,11 +136,6 @@ export const swaggerDoc = {
         responses: {
           200: {
             description: "Usuário deletado",
-            content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/UsuarioResponse" },
-              },
-            },
           },
           400: { description: "Dados inválidos" },
           401: { description: "Não autorizado" },
