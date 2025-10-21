@@ -65,3 +65,45 @@ export async function listarLeituras(req, res) {
     return res.status(500).json({ error: "Erro ao buscar leituras." });
   }
 }
+
+/**
+ * Deleta uma leitura pelo ID.
+ * Aceita id em req.body.id (preferido), ou req.params.id / req.query.id.
+ */
+export async function deletarLeitura(req, res) {
+  try {
+    const rawId =
+      (req.body && req.body.id) ??
+      (req.params && req.params.id) ??
+      (req.query && req.query.id);
+
+    if (rawId === undefined) {
+      return res.status(400).json({ error: "Campo 'id' é obrigatório." });
+    }
+
+    const id = Number(rawId);
+    if (!Number.isInteger(id) || id <= 0) {
+      return res
+        .status(400)
+        .json({ error: "O campo 'id' deve ser um inteiro positivo." });
+    }
+
+    const { rows, rowCount } = await pool.query(
+      "DELETE FROM leituras WHERE id = $1 RETURNING *;",
+      [id]
+    );
+
+    if (rowCount === 0) {
+      return res.status(404).json({ error: "Leitura não encontrada." });
+    }
+
+    return res.status(200).json({
+      message: "Leitura deletada com sucesso",
+      leitura: rows[0],
+    });
+  } catch (err) {
+    console.error("❌ Erro ao deletar leitura:", err.message);
+    return res.status(500).json({ error: "Erro interno ao deletar leitura." });
+  }
+}
+
