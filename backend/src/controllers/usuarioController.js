@@ -48,55 +48,13 @@ export async function criarUsuario(req, res) {
  */
 export async function listarUsuarios(req, res) {
   try {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
-    const offset = (page - 1) * limit;
-
-    const q = req.query.q?.trim();
-
-    const where = [];
-    const params = [];
-    let i = 1;
-
-    if (q) {
-      where.push(`(nome ILIKE $${i} OR email ILIKE $${i})`);
-      params.push(`%${q}%`);
-      i++;
-    }
-
-    const whereSQL = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-    const dataSQL = `
-      SELECT id, nome, email
-        FROM usuarios
-       ${whereSQL}
-       ORDER BY id DESC
-       LIMIT $${i} OFFSET $${i + 1};
-    `;
-    const countSQL = `
-      SELECT COUNT(*)::int AS total
-        FROM usuarios
-       ${whereSQL};
-    `;
-
-    const dataParams = [...params, limit, offset];
-    const [{ rows }, countResult] = await Promise.all([
-      pool.query(dataSQL, dataParams),
-      pool.query(countSQL, params),
-    ]);
-
-    const total = countResult.rows[0]?.total ?? 0;
-
-    return res.status(200).json({
-      total,
-      page,
-      limit,
-      hasNextPage: offset + rows.length < total,
-      data: rows, // [{ id, nome, email }]
-    });
+    const { rows } = await pool.query(
+      "SELECT * FROM usuarios ORDER BY id DESC"
+    );
+    return res.status(200).json(rows);
   } catch (err) {
-    console.error("❌ Erro ao listar usuários:", err.message);
-    return res.status(500).json({ error: "Erro interno ao listar usuários." });
+    console.error("❌ Erro ao buscar usuarios:", err.message);
+    return res.status(500).json({ error: "Erro ao buscar usuarios." });
   }
 }
 
