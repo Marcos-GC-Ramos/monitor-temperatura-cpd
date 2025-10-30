@@ -1,0 +1,50 @@
+# ====================================
+# 🧱 Node.js / Next.js / Docker Setup
+# ====================================
+
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+
+# Backend (Node.js)
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.production.local
+
+# Banco de dados e dados persistentes
+data/
+docker-data/
+*.pid
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# Cache / temporários
+.cache/
+tmp/
+temp/
+coverage/
+
+# IDEs / sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
