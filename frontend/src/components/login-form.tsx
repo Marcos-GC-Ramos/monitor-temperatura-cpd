@@ -85,13 +85,13 @@ export function LoginForm({
               </Field>
             </FieldGroup>
           </form>
-          <div className="bg-muted relative hidden md:block">
+          <div className="bg-[#eb7202] relative hidden md:block">
             <Image
               width="1200" 
               height="1200"
-              src="/placeholder.svg"
+              src="/visteon-logo.png"
               alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              className="absolute inset-0 h-full w-full object-cover scale-50"
             />
           </div>
         </CardContent>
