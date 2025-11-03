@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 
 // ======================== CONFIGURAÇÕES ========================
-const BASE_URL = "https://monitor-temperatura-cpd.onrender.com"; // 🌐 URL da API online
-// const BASE_URL = "http://localhost:3000/api/temperaturas"; // 🌐 URL da API local
+// const BASE_URL = "https://monitor-temperatura-cpd.onrender.com"; // 🌐 URL da API online
+const BASE_URL = "http://localhost:3000"; // 🌐 URL da API local
 const LOGIN_URL = `${BASE_URL}/api/login`;
 const API_URL = `${BASE_URL}/api/temperaturas`;
 
@@ -64,7 +64,7 @@ async function obterTemperaturaAmbiente() {
     return Number(data.current_weather?.temperature ?? null);
   } catch (error) {
     console.error("⚠️ Erro ao obter temperatura ambiente:", error.message);
-    return null;
+    return "00.00";
   }
 }
 
