@@ -26,6 +26,7 @@ import {
 
 import { useRouter } from "next/navigation";
 import { clearToken } from "@/lib/auth";
+import { UserCog } from 'lucide-react';
 
 export function NavUser({
   user,
@@ -51,17 +52,21 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="hover:bg-transparent data-[state=open]:bg-transparent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-6 w-6 rounded-lg grayscale">
-                <AvatarImage src={'/img/icons/icon-user.svg'} alt={user.name} />
+                <UserCog />
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
-                </span>
-              </div>
+              {isMobile ? '' :
+                <>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">{user.name}</span>
+                      <span className="text-muted-foreground truncate text-xs">
+                        {user.email}
+                      </span>
+                    </div>
+                </>
+              }
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -71,20 +76,25 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-6 w-6 rounded-lg">
-                  <AvatarImage src={'/img/icons/icon-user.svg'} alt={user.name} />
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
-                  </span>
+            { isMobile ?
+            <>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-6 w-6 rounded-lg">
+                    <AvatarImage src={'/img/icons/icon-user.svg'} alt={user.name} />
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+            </>
+            : ""
+            }
             <DropdownMenuItem onClick={logout}>
               <IconLogout />
               Sair do sistema

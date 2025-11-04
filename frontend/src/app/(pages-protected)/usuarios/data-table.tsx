@@ -32,13 +32,10 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconLayoutColumns,
-  IconCircleCheck,
-  IconAlertTriangle,
 } from "@tabler/icons-react";
 
 // Componentes de UI (ShadCN)
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -61,6 +58,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input"
 
 // React Table (TanStack)
 import {
@@ -80,71 +78,29 @@ import {
 } from "@tanstack/react-table";
 
 // Tipagem e schema
-import { Leitura } from "@/services/temperaturaService";
-export type LeituraType = Leitura;
+import { Usuario } from "@/services/usuarioService";
+export type UsuarioType = Usuario;
 
 // As colunas da tabela
-const columns: ColumnDef<Leitura>[] = [
+const columns: ColumnDef<Usuario>[] = [
   {
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => <span className="px-5">{row.original.id}</span>,
   },
   {
-    accessorKey: "temperatura CPD",
-    header: "Temperatura do CPD (°C)",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="px-2.5">
-        {row.original.temperatura.toFixed(1)} °C
-      </Badge>
-    ),
+    accessorKey: "nome",
+    header: "Nome",
+    cell: ({ row }) => <span>{row.original.nome}</span>,
   },
   {
-    accessorKey: "temperatura ambiente",
-    header: "Clima (°C)",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="px-2.5">
-        {(row.original.temperatura_ambiente ?? 0).toFixed(1)} °C
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "Status",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge
-        variant="outline"
-        className={`px-1.5 inline-flex items-center gap-1 ${
-          row.original.alarme ? "text-[#f54900]" : "text-muted-foreground"
-        }`}
-        title={row.original.alarme ? "Temperatura acima do limite" : "Temperatura ok"}
-      >
-        {row.original.alarme ? (
-          <>
-            <IconAlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-            Superaquecido
-          </>
-        ) : (
-          <>
-            <IconCircleCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Temperatura ideal
-          </>
-        )}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "data ocorrencia",
-    header: "Data da leitura",
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">
-        {new Date(row.original.data).toLocaleString("pt-BR")}
-      </span>
-    ),
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.email}</span>,
   },
 ];
 
-function DraggableRow({ row }: { row: Row<Leitura> }) {
+function DraggableRow({ row }: { row: Row<Usuario> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   })
@@ -172,9 +128,9 @@ function DraggableRow({ row }: { row: Row<Leitura> }) {
 export function DataTable({
   data: initialData,
 }: {
-  data: Leitura[]
+  data: Usuario[]
 }) {
-  const [data, setData] = React.useState<Leitura[]>(initialData);
+  const [data, setData] = React.useState<Usuario[]>(initialData);
 
   useEffect(() => {
     setData(initialData);
@@ -203,6 +159,8 @@ export function DataTable({
     [data]
   );
 
+  const [globalFilter, setGlobalFilter] = React.useState("")
+
   const table = useReactTable({
     data,
     columns,
@@ -212,7 +170,9 @@ export function DataTable({
       rowSelection,
       columnFilters,
       pagination,
+      globalFilter,
     },
+    onGlobalFilterChange: setGlobalFilter,
     getRowId: (row) => (row.id ? row.id.toString() : Math.random().toString()),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -226,6 +186,14 @@ export function DataTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+
+    // ✅ Filtro personalizado (nome + email)
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const nome = row.original.nome?.toLowerCase() ?? ""
+      const email = row.original.email?.toLowerCase() ?? ""
+      const search = filterValue.toLowerCase()
+      return nome.includes(search) || email.includes(search)
+    },
   })
 
   function handleDragEnd(event: DragEndEvent) {
@@ -269,13 +237,12 @@ export function DataTable({
           </Select>
         </div>
 
-        <div>
+        <div className="flex items-stretch gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="h-auto">
                   <IconLayoutColumns />
-                  <span className="hidden lg:inline">Customize Columns</span>
-                  <span className="lg:hidden">Columns</span>
+                  <span className="hidden lg:inline">Columns</span>
                   <IconChevronDown />
                 </Button>
             </DropdownMenuTrigger>
@@ -303,6 +270,13 @@ export function DataTable({
                   })}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Input
+            placeholder="Buscar por nome e email..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="max-w-sm lg:w-[300px]"
+          />
         </div>
       </div>
 
@@ -369,10 +343,10 @@ export function DataTable({
 
         <div className="flex items-center justify-between">
           <div></div>
-          {/* <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} registro(s) selecionado(s).
-          </div> */}
+          </div>
 
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="flex w-fit items-center justify-center text-sm font-medium">

@@ -1,5 +1,14 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { NavUser } from "@/components/nav-user"
+
+const data = {
+  user: {
+    name: "Usuario",
+    email: "email@example.com",
+    avatar: "/img/icons/icon-user.svg",
+  },
+}
 
 export function SiteHeader() {
   return (
@@ -10,7 +19,12 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">Dashboard de monitoramento</h1>
+        <div className="w-full flex justify-between items-center">
+          <h1 className="text-base font-medium">Dashboard de monitoramento</h1>
+          <div>
+            <NavUser user={data.user} />
+          </div>
+        </div>
       </div>
     </header>
   )

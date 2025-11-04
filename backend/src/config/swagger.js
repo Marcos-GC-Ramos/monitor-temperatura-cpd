@@ -7,8 +7,7 @@ export const swaggerDoc = {
       "API com autenticação JWT para registro e consulta de temperaturas e gerenciamento de usuários.",
   },
   servers: [
-    { url: "http://localhost:3000", description: "Dev" },
-    { url: "https://monitor-temperatura-cpd.onrender.com/", description: "Prod" },
+    { url: "https://monitor-temperatura-cpd.onrender.com/"},
   ],
   tags: [
     { name: "Autenticação" },
@@ -40,30 +39,8 @@ export const swaggerDoc = {
         tags: ["Usuários"],
         summary: "Retorna listagem de usuários",
         security: [{ bearerAuth: [] }],
-        parameters: [
-          {
-            in: "query",
-            name: "q",
-            schema: { type: "string" },
-            description: "Busca por nome ou email (ILIKE).",
-          },
-          {
-            in: "query",
-            name: "page",
-            schema: { type: "integer", minimum: 1, default: 1 },
-            description: "Número da página.",
-          },
-          {
-            in: "query",
-            name: "limit",
-            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
-            description: "Itens por página.",
-          },
-        ],
         responses: {
-          200: {
-            description: "Lista paginada de usuários",
-          },
+          200: { description: "Lista de usuários" },
           401: { description: "Não autorizado" },
         },
       },
@@ -104,9 +81,9 @@ export const swaggerDoc = {
             "application/json": {
               example: {
                 id: 42,
-                nome: "Alice S. (atualizado)",
-                email: "alice.s@cpd.com",
-                senha: "NovaSenha@456" // opcional
+                nome: "Julia V. (atualizado)",
+                email: "julia.v@cpd.com",
+                senha: "NovaSenha@456"
               },
             },
           },

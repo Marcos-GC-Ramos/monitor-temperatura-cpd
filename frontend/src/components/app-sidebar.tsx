@@ -28,12 +28,12 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
       title: "Usuários",
-      url: "#",
+      url: "/usuarios",
       icon: IconUsers,
     },
   ]
