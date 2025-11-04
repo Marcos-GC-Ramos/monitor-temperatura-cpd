@@ -30,9 +30,7 @@ import { useRouter } from "next/navigation";
 import { clearToken } from "@/lib/auth";
 import { UserCog } from 'lucide-react';
 
-export function NavUser({
-  user,
-}: {
+export function NavUser({} : {
   user: {
     name: string
     email: string
