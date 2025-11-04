@@ -13,5 +13,6 @@ export async function login(req, res) {
   if (!valido) return res.status(401).json({ error: "Senha incorreta." });
 
   const token = gerarToken({ id: user.rows[0].id, email: user.rows[0].email });
-  return res.json({ token });
+  
+  return res.json({ token, email: user.rows[0].email, nome: user.rows[0].nome });
 }

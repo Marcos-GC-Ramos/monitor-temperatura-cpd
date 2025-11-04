@@ -32,7 +32,7 @@ export function LoginForm({
       const res = await loginService(email, senha);
 
       // Salva no cookie via helper
-      setToken(res.token);
+      setToken(res.token, res.email, res.nome);
       router.push("/dashboard");
     } catch {
       toast.error("Falha no login. Verifique suas credenciais.");

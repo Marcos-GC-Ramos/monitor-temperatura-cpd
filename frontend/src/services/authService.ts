@@ -2,6 +2,8 @@ import api from "@/lib/api";
 
 export interface LoginResponse {
   token: string;
+  nome: string;
+  email: string;
 }
 
 export async function login(email: string, senha: string): Promise<LoginResponse> {
