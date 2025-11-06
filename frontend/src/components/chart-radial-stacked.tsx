@@ -12,17 +12,20 @@ import {
   ChartConfig,
   ChartContainer,
 } from "@/components/ui/chart"
+import { Skeleton } from "./ui/skeleton"
 
 export const description = "A radial chart with stacked sections"
 
 export interface ChartRadialStackedProps {
   title: string
+  loading: boolean
+  bgChart: string | null
   data: {
     temperatura: number
   }[]
 }
 
-export function ChartRadialStacked({ data, title }: ChartRadialStackedProps) {  
+export function ChartRadialStacked({ data, title, loading, bgChart = null, }: ChartRadialStackedProps) {  
   const ultimaLeitura = data?.[0] || null;
   const temperaturaAtual = ultimaLeitura?.temperatura ?? 0;
 
@@ -35,70 +38,74 @@ export function ChartRadialStacked({ data, title }: ChartRadialStackedProps) {
     },
     mobile: {
       label: "Mobile",
-      color: "var(--primary)",
+      color: bgChart ? bgChart : "var(--primary)",
     },
   } satisfies ChartConfig
 
   return (
-    <Card className="@container/card lg:max-h-[300px]">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>Temperatura atualizada há 1min</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-1 items-center pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square w-full max-w-[250px]"
-        >
-          <RadialBarChart
-            data={chartData}
-            endAngle={180}
-            innerRadius={80}
-            outerRadius={130}
-          >
-            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-              <Label
-                content={({ viewBox }) => {
-                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                    return (
-                      <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) - 16}
-                          className="fill-foreground text-2xl font-bold"
-                        >
-                          {temperaturaAtual}°C
-                        </tspan>
-                        <tspan
-                          x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 4}
-                          className="fill-muted-foreground"
-                        >
-                          Graus
-                        </tspan>
-                      </text>
-                    )
-                  }
-                }}
-              />
-            </PolarRadiusAxis>
-            <RadialBar
-              dataKey="desktop"
-              stackId="a"
-              cornerRadius={5}
-              fill="var(--color-desktop)"
-              className="stroke-transparent stroke-2"
-            />
-            <RadialBar
-              dataKey="mobile"
-              fill="var(--color-mobile)"
-              stackId="a"
-              cornerRadius={5}
-              className="stroke-transparent stroke-2"
-            />
-          </RadialBarChart>
-        </ChartContainer>
-      </CardContent>
+    <Card className={`@container/card lg:max-h-[300px] ${loading ? "py-0" : "py-6"}`}>
+      {loading ? <Skeleton className="h-[300px] w-full" /> : 
+        <>
+          <CardHeader className="items-center pb-0">
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>Temperatura atualizada há 1min</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-1 items-center pb-0">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto aspect-square w-full max-w-[250px]"
+            >
+              <RadialBarChart
+                data={chartData}
+                endAngle={180}
+                innerRadius={80}
+                outerRadius={130}
+              >
+                <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                  <Label
+                    content={({ viewBox }) => {
+                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                        return (
+                          <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
+                            <tspan
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) - 16}
+                              className="fill-foreground text-2xl font-bold"
+                            >
+                              {temperaturaAtual}°C
+                            </tspan>
+                            <tspan
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) + 4}
+                              className="fill-muted-foreground"
+                            >
+                              Graus
+                            </tspan>
+                          </text>
+                        )
+                      }
+                    }}
+                  />
+                </PolarRadiusAxis>
+                <RadialBar
+                  dataKey="desktop"
+                  stackId="a"
+                  cornerRadius={5}
+                  fill="var(--color-desktop)"
+                  className="stroke-transparent stroke-2"
+                />
+                <RadialBar
+                  dataKey="mobile"
+                  fill="var(--color-mobile)"
+                  stackId="a"
+                  cornerRadius={5}
+                  className="stroke-transparent stroke-2"
+                />
+              </RadialBarChart>
+            </ChartContainer>
+          </CardContent>
+        </>
+      }
     </Card>
   )
 }

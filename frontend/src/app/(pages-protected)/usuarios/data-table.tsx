@@ -79,6 +79,8 @@ import {
 
 // Tipagem e schema
 import { Usuario } from "@/services/usuarioService";
+import { AddUser } from "./add-user";
+import { Skeleton } from "@/components/ui/skeleton";
 export type UsuarioType = Usuario;
 
 // As colunas da tabela
@@ -95,7 +97,7 @@ const columns: ColumnDef<Usuario>[] = [
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: "E-mail",
     cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.email}</span>,
   },
 ];
@@ -126,9 +128,11 @@ function DraggableRow({ row }: { row: Row<Usuario> }) {
 }
 
 export function DataTable({
-  data: initialData,
+  data: initialData, loading, initialized,
 }: {
-  data: Usuario[]
+  data: Usuario[],
+  loading: boolean,
+  initialized: boolean,
 }) {
   const [data, setData] = React.useState<Usuario[]>(initialData);
 
@@ -211,63 +215,38 @@ export function DataTable({
     <div
       className="w-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-between mb-6 gap-3 px-4 lg:px-6">
-        <div className="hidden items-center gap-2 lg:flex">
-          <Label htmlFor="rows-per-page" className="text-sm font-medium">
-            Registros por página
-          </Label>
-          <Select
-            value={`${table.getState().pagination.pageSize}`}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value))
-            }}
-          >
-            <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-              <SelectValue
-                placeholder={table.getState().pagination.pageSize}
-              />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex items-stretch justify-between mb-6 gap-3 px-4 lg:px-6">
         <div className="flex items-stretch gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-auto">
-                  <IconLayoutColumns />
-                  <span className="hidden lg:inline">Columns</span>
-                  <IconChevronDown />
-                </Button>
+              <Button variant="outline" size="sm" className="h-auto">
+                <IconLayoutColumns />
+                <span className="hidden lg:inline">Columns</span>
+                <IconChevronDown />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-                {table
-                  .getAllColumns()
-                  .filter(
-                    (column) =>
-                      typeof column.accessorFn !== "undefined" &&
-                      column.getCanHide()
+              {table
+                .getAllColumns()
+                .filter(
+                  (column) =>
+                    typeof column.accessorFn !== "undefined" &&
+                    column.getCanHide()
+                )
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
                   )
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {column.id}
-                      </DropdownMenuCheckboxItem>
-                    )
-                  })}
+                })}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -278,6 +257,8 @@ export function DataTable({
             className="max-w-sm lg:w-[300px]"
           />
         </div>
+
+        <AddUser />
       </div>
 
       <div
@@ -306,9 +287,9 @@ export function DataTable({
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
 
                       )
@@ -317,7 +298,23 @@ export function DataTable({
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
+                {!initialized || loading ? (
+                  // 🦴 Enquanto estiver carregando → mostra skeleton
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[300px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[200px]" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : table.getRowModel().rows?.length ? (
+                  // ✅ Quando terminar de carregar e há dados → renderiza linhas
                   <SortableContext
                     items={dataIds}
                     strategy={verticalListSortingStrategy}
@@ -327,12 +324,13 @@ export function DataTable({
                     ))}
                   </SortableContext>
                 ) : (
+                  // ⚠️ Quando terminar de carregar e não há dados
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      Sem resultados.
                     </TableCell>
                   </TableRow>
                 )}
@@ -341,18 +339,38 @@ export function DataTable({
           </DndContext>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div></div>
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} de{" "}
-            {table.getFilteredRowModel().rows.length} registro(s) selecionado(s).
+        <div className="flex items-center justify-between gap-8">
+          <div className="hidden items-center gap-3 lg:flex">
+            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              Por página
+            </Label>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+              }}
+            >
+              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectValue
+                  placeholder={table.getState().pagination.pageSize}
+                />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex w-full items-center gap-8 lg:w-fit">
+          <div className="flex w-full items-center gap-3 lg:w-fit">
             <div className="flex w-fit items-center justify-center text-sm font-medium">
               Página {table.getState().pagination.pageIndex + 1} de{" "}
               {table.getPageCount()}
             </div>
+
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
               <Button
                 variant="outline"

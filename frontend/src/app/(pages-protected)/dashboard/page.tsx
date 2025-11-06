@@ -1,49 +1,27 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { toast } from "sonner";
-
-// Auth & Services
-import { getToken } from "@/lib/auth";
-import { obterTemperaturas } from "@/services/temperaturaService";
-import type { Leitura } from "@/services/temperaturaService";
-
-// Componentes de layout e UI
+import { useEffect } from "react";
+import { TemperaturasProvider, useTemperaturasContext } from "@/context/TemperaturasContext";
 import { SectionCards } from "@/components/section-cards";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-
-// 📊 Tabela principal
 import { DataTable } from "./data-table";
 
-export default function Page() {
-  const [leituras, setLeituras] = useState<Leitura[]>([]);
-
-  const carregarLeituras = useCallback(async () => {
-    try {
-      const token = getToken(); 
-      const data = await obterTemperaturas(token!);
-      setLeituras(data);
-
-    } catch (error) {
-      toast("⚠️ Erro ao carregar temperaturas");
-      console.error(error);
-    }
-  }, []);
+function TemperaturasPageContent() {
+  const { temperaturas, loading, carregarTemperaturas } = useTemperaturasContext();
 
   useEffect(() => {
-    carregarLeituras();
+    carregarTemperaturas();
 
-    // Atualiza automaticamente a cada 60 segundos
-    const interval = setInterval(carregarLeituras, 60_000);
+    const interval = setInterval(carregarTemperaturas, 60_000);
     return () => clearInterval(interval);
-  }, [carregarLeituras]);
+  }, [carregarTemperaturas]);
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
-        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <div className="flex flex-col gap-4 md:gap-6">
           <SectionCards 
-            data={leituras.map((item) => ({
+            data={temperaturas.map((item) => ({
               date: item.data,
               temperatura: item.temperatura,
               temperatura_ambiente: item.temperatura_ambiente,
@@ -52,7 +30,7 @@ export default function Page() {
 
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive
-              data={leituras.map((item) => ({
+              data={temperaturas.map((item) => ({
                 date: item.data,
                 temperatura: item.temperatura,
                 temperatura_ambiente: item.temperatura_ambiente,
@@ -60,9 +38,17 @@ export default function Page() {
             />
           </div>
 
-          <DataTable data={leituras} />
+          <DataTable data={temperaturas} loading={loading} />
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <TemperaturasProvider>
+      <TemperaturasPageContent />
+    </TemperaturasProvider>
   );
 }

@@ -3,6 +3,10 @@
 import * as React from "react";
 import { useEffect } from "react";
 
+// Tipagem e schema
+import { Leitura } from "@/services/temperaturaService";
+export type LeituraType = Leitura;
+
 // Utilitários e bibliotecas externas
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -16,25 +20,31 @@ import {
   type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core";
+
 import {
   arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
-// Ícones
+
 import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconLayoutColumns,
-  IconCircleCheck,
-  IconAlertTriangle,
-} from "@tabler/icons-react";
+  ColumnDef,
+  ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  Row,
+  SortingState,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 
 // Componentes de UI (ShadCN)
 import { Label } from "@/components/ui/label";
@@ -62,26 +72,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// React Table (TanStack)
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Row,
-  SortingState,
-  useReactTable,
-  VisibilityState,
-} from "@tanstack/react-table";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 
-// Tipagem e schema
-import { Leitura } from "@/services/temperaturaService";
-export type LeituraType = Leitura;
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+
+// Ícones
+import {
+  IconChevronDown,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronsLeft,
+  IconChevronsRight,
+  IconLayoutColumns,
+  IconCircleCheck,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
+import { CirclePlus } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton";
 
 // As colunas da tabela
 const columns: ColumnDef<Leitura>[] = [
@@ -170,11 +188,14 @@ function DraggableRow({ row }: { row: Row<Leitura> }) {
 }
 
 export function DataTable({
-  data: initialData,
+  data: initialData, loading,
 }: {
-  data: Leitura[]
+  data: Leitura[],
+  loading: boolean,
 }) {
   const [data, setData] = React.useState<Leitura[]>(initialData);
+  const [filter, setFilter] = React.useState("todos")
+  const [open, setOpen] = React.useState(false)
 
   useEffect(() => {
     setData(initialData);
@@ -203,8 +224,15 @@ export function DataTable({
     [data]
   );
 
+  const filteredData = React.useMemo(() => {
+    if (filter === "todos") return data
+    return data.filter((item) =>
+      filter === "superaquecido" ? item.alarme === true : item.alarme === false
+    )
+  }, [data, filter])
+
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -243,32 +271,7 @@ export function DataTable({
     <div
       className="w-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-between mb-6 gap-3 px-4 lg:px-6">
-        <div className="hidden items-center gap-2 lg:flex">
-          <Label htmlFor="rows-per-page" className="text-sm font-medium">
-            Registros por página
-          </Label>
-          <Select
-            value={`${table.getState().pagination.pageSize}`}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value))
-            }}
-          >
-            <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-              <SelectValue
-                placeholder={table.getState().pagination.pageSize}
-              />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex items-stretch mb-6 gap-3 px-4 lg:px-6">
         <div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -302,6 +305,47 @@ export function DataTable({
                   })}
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        <div>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="border-dashed">
+                <CirclePlus className="size-4" />
+                {filter === "todos"
+                  ? "Todos os status"
+                  : filter === "superaquecido"
+                  ? "Superaquecido"
+                  : "Temperatura ideal"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[180px] p-0">
+              <Command>
+                <CommandInput placeholder="Buscar por status..." className="h-9" />
+                <CommandList>
+                  <CommandEmpty>Nenhum resultado</CommandEmpty>
+                  <CommandGroup>
+                    {[
+                      { value: "todos", label: "Todos os status" },
+                      { value: "superaquecido", label: "Superaquecido" },
+                      { value: "ok", label: "Temperatura ideal" },
+                    ].map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={option.value}
+                        onSelect={(value) => {
+                          setFilter(value)
+                          setOpen(false)
+                        }}
+                      >
+                        {option.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -342,7 +386,28 @@ export function DataTable({
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[75px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[75px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[175px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full max-w-[200px]" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : table.getRowModel().rows?.length ? (
+                  // ✅ Quando terminar de carregar e há dados → renderiza linhas
                   <SortableContext
                     items={dataIds}
                     strategy={verticalListSortingStrategy}
@@ -352,12 +417,13 @@ export function DataTable({
                     ))}
                   </SortableContext>
                 ) : (
+                  // ⚠️ Quando terminar de carregar e não há dados
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      Sem resultados.
                     </TableCell>
                   </TableRow>
                 )}
@@ -367,11 +433,30 @@ export function DataTable({
         </div>
 
         <div className="flex items-center justify-between">
-          <div></div>
-          {/* <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} de{" "}
-            {table.getFilteredRowModel().rows.length} registro(s) selecionado(s).
-          </div> */}
+          <div className="hidden items-center gap-2 lg:flex">
+            <Label htmlFor="rows-per-page" className="text-sm font-medium">
+              Por página
+            </Label>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value))
+              }}
+            >
+              <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectValue
+                  placeholder={table.getState().pagination.pageSize}
+                />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="flex w-fit items-center justify-center text-sm font-medium">
