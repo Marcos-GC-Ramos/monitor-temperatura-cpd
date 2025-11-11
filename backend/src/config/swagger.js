@@ -7,7 +7,8 @@ export const swaggerDoc = {
       "API com autenticação JWT para registro e consulta de temperaturas e gerenciamento de usuários.",
   },
   servers: [
-    { url: "https://monitor-temperatura-cpd.onrender.com/"},
+    { url: "http://localhost:3000/", description: "Servidor local"},
+    { url: "https://monitor-temperatura-cpd.onrender.com/", description: "Servidor de produção" },
   ],
   tags: [
     { name: "Autenticação" },
@@ -34,6 +35,7 @@ export const swaggerDoc = {
         },
       },
     },
+    
     "/api/usuarios": {
       get: {
         tags: ["Usuários"],
@@ -56,6 +58,8 @@ export const swaggerDoc = {
                 nome: "Alice Silva",
                 email: "alice@cpd.com",
                 senha: "SenhaForte@123",
+                status_acesso: false,
+                nivel_permissao: "usuario",
               },
             },
           },
@@ -83,7 +87,9 @@ export const swaggerDoc = {
                 id: 42,
                 nome: "Julia V. (atualizado)",
                 email: "julia.v@cpd.com",
-                senha: "NovaSenha@456"
+                senha: "NovaSenha@456",
+                status_acesso: true,
+                nivel_permissao: "usuario",
               },
             },
           },

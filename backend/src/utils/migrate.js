@@ -1,7 +1,7 @@
 import { pool } from "../config/db.js";
 
 export async function migrate() {
-  console.log("⚙️ Executando migrações...");
+  console.log("Executando migrações");
 
   try {
     // Criação das tabelas
@@ -10,7 +10,9 @@ export async function migrate() {
         id SERIAL PRIMARY KEY,
         nome VARCHAR(100),
         email VARCHAR(100) UNIQUE NOT NULL,
-        senha VARCHAR(255) NOT NULL
+        senha VARCHAR(255) NOT NULL,
+        status_acesso BOOLEAN DEFAULT TRUE,
+        nivel_permissao VARCHAR(50) DEFAULT 'usuario'
       );
     `);
 
@@ -25,7 +27,7 @@ export async function migrate() {
       );
     `);
 
-    // 🔧 Garante que as novas colunas existam mesmo em tabelas antigas
+    // Garante que as novas colunas existam mesmo em tabelas antigas
     await pool.query(`
       ALTER TABLE leituras
       ADD COLUMN IF NOT EXISTS temperatura_anterior REAL;
@@ -36,9 +38,20 @@ export async function migrate() {
       ADD COLUMN IF NOT EXISTS temperatura_ambiente REAL;
     `);
 
-    console.log("🧱 Migrações aplicadas com sucesso!");
+    // Garante que as novas colunas existam em 'usuarios' também
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS status_acesso BOOLEAN DEFAULT TRUE;
+    `);
+
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS nivel_permissao VARCHAR(50) DEFAULT 'usuario';
+    `);
+
+    console.log("Migrações aplicadas com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao executar migrações:", error.message);
+    console.error("Erro ao executar migrações:", error.message);
     throw error;
   }
 }

@@ -8,34 +8,34 @@ import bcrypt from "bcryptjs";
  */
 export async function criarUsuario(req, res) {
   try {
-    const { nome, email, senha } = req.body || {};
+    const { nome, email, senha, status_acesso, nivel_permissao } = req.body || {};
 
-    if (!nome || !email || !senha) {
+    if (!nome || !email || !senha || status_acesso === undefined || !nivel_permissao) {
       return res.status(400).json({
-        error: "Campos 'nome', 'email' e 'senha' são obrigatórios.",
+        error: "Campos 'nome', 'email', 'senha', status_acesso e nivel_permissao são obrigatórios.",
       });
     }
 
     const senhaHash = await bcrypt.hash(String(senha), 10);
 
     const insert = `
-      INSERT INTO usuarios (nome, email, senha)
-      VALUES ($1, $2, $3)
-      RETURNING id, nome, email;
+      INSERT INTO usuarios (nome, email, senha, status_acesso, nivel_permissao)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, nome, email, status_acesso, nivel_permissao;
     `;
 
-    const { rows } = await pool.query(insert, [nome, email, senhaHash]);
+    const { rows } = await pool.query(insert, [nome, email, senhaHash, status_acesso, nivel_permissao]);
 
     return res.status(201).json({
       message: "Usuário criado com sucesso",
-      usuario: rows[0], // { id, nome, email }
+      usuario: rows[0], // { id, nome, email, status_acesso, nivel_permissao }
     });
   } catch (err) {
     if (err && err.code === "23505") {
       // requer UNIQUE(email) no banco
       return res.status(409).json({ error: "E-mail já está em uso por outro usuário." });
     }
-    console.error("❌ Erro ao criar usuário:", err.message);
+    console.error("Erro ao criar usuário:", err.message);
     return res.status(500).json({ error: "Erro interno ao criar usuário." });
   }
 }
@@ -53,7 +53,7 @@ export async function listarUsuarios(req, res) {
     );
     return res.status(200).json(rows);
   } catch (err) {
-    console.error("❌ Erro ao buscar usuarios:", err.message);
+    console.error("Erro ao buscar usuarios:", err.message);
     return res.status(500).json({ error: "Erro ao buscar usuarios." });
   }
 }
@@ -80,7 +80,7 @@ export async function atualizarUsuario(req, res) {
         .json({ error: "O campo 'id' deve ser um inteiro positivo." });
     }
 
-    const { nome, email, senha } = req.body || {};
+    const { nome, email, senha, status_acesso, nivel_permissao } = req.body || {};
 
     const sets = [];
     const values = [];
@@ -90,19 +90,31 @@ export async function atualizarUsuario(req, res) {
       sets.push(`nome = $${idx++}`);
       values.push(nome);
     }
+
     if (email !== undefined) {
       sets.push(`email = $${idx++}`);
       values.push(email);
     }
+
     if (senha !== undefined) {
       const hash = await bcrypt.hash(String(senha), 10);
       sets.push(`senha = $${idx++}`);
       values.push(hash);
     }
 
+    if (status_acesso !== undefined) {
+      sets.push(`status_acesso = $${idx++}`);
+      values.push(status_acesso);
+    }
+
+    if (nivel_permissao !== undefined) {
+      sets.push(`nivel_permissao = $${idx++}`);
+      values.push(nivel_permissao);
+    }
+
     if (sets.length === 0) {
       return res.status(400).json({
-        error: "Nenhum campo para atualizar. Envie ao menos um de: nome, email, senha.",
+        error: "Nenhum campo para atualizar. Envie ao menos um de: nome, email, senha, status_acesso, nivel_permissao.",
       });
     }
 
@@ -111,7 +123,7 @@ export async function atualizarUsuario(req, res) {
       UPDATE usuarios
          SET ${sets.join(", ")}
        WHERE id = $${idx}
-       RETURNING id, nome, email;
+       RETURNING id, nome, email, status_acesso, nivel_permissao;
     `;
 
     const { rows, rowCount } = await pool.query(query, values);
@@ -128,7 +140,7 @@ export async function atualizarUsuario(req, res) {
     if (err && err.code === "23505") {
       return res.status(409).json({ error: "E-mail já está em uso por outro usuário." });
     }
-    console.error("❌ Erro ao atualizar usuário:", err.message);
+    console.error("Erro ao atualizar usuário:", err.message);
     return res.status(500).json({ error: "Erro interno ao atualizar usuário." });
   }
 }
@@ -169,7 +181,7 @@ export async function deletarUsuario(req, res) {
       usuario: rows[0],
     });
   } catch (err) {
-    console.error("❌ Erro ao deletar usuário:", err.message);
+    console.error("Erro ao deletar usuário:", err.message);
     return res.status(500).json({ error: "Erro interno ao deletar usuário." });
   }
 }
