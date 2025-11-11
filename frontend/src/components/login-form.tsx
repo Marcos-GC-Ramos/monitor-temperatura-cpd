@@ -1,4 +1,6 @@
 "use client";
+
+import axios, { AxiosError } from "axios";
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -32,10 +34,24 @@ export function LoginForm({
       const res = await loginService(email, senha);
 
       // Salva no cookie via helper
-      setToken(res.token, res.email, res.nome);
+      setToken(res.token, res.email, res.nome, res.nivel_permissao);
       router.push("/dashboard");
-    } catch {
-      toast.error("Falha no login. Verifique suas credenciais.");
+    } catch (error: unknown) {
+      let mensagem = "Erro ao carregar usuários.";
+
+      if (axios.isAxiosError(error)) {
+        // é um erro do Axios
+        mensagem =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Erro ao carregar usuários."; 
+
+      } else if (error instanceof Error) {
+        // é um erro genérico do JS
+        mensagem = error.message;
+      }
+
+      toast.error(mensagem);
     } finally {
       setCarregando(false);
     }

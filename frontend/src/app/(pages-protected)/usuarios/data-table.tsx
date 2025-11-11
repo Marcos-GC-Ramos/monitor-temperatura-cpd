@@ -33,6 +33,7 @@ import {
   IconChevronsRight,
   IconLayoutColumns,
 } from "@tabler/icons-react";
+import { CircleCheckBig, CircleSlash2, MoreHorizontal } from 'lucide-react';
 
 // Componentes de UI (ShadCN)
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,9 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Select,
@@ -59,6 +63,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 
 // React Table (TanStack)
 import {
@@ -86,7 +91,7 @@ export type UsuarioType = Usuario;
 // As colunas da tabela
 const columns: ColumnDef<Usuario>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "ID",
     header: "ID",
     cell: ({ row }) => <span className="px-5">{row.original.id}</span>,
   },
@@ -99,6 +104,50 @@ const columns: ColumnDef<Usuario>[] = [
     accessorKey: "email",
     header: "E-mail",
     cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.email}</span>,
+  },
+  {
+    accessorKey: "nivel permissao",
+    header: "Nivel de Permissão",
+    cell: ({row})=> <span className="flex items-center gap-1">{row.original.nivel_permissao == "usuario" ? "Usuário Base" : "Usuário Administrador"}</span>
+  },
+  {
+    accessorKey: "status acesso",
+    header: "Status de Acesso",
+    cell: ({row})=>
+    <span className="flex items-center gap-1">
+      {row.original.status_acesso ? 
+        <><CircleCheckBig className="text-muted-foreground w-[16px]"/>Ativo</> : 
+        <><CircleSlash2 className="text-muted-foreground w-[16px]"/>Desativado</> 
+      }
+    </span>
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const usuario = row.original
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Edit Usuário</DropdownMenuItem>
+            <DropdownMenuLabel>
+              <div className="flex items-center space-x-2 my-1">
+                <Switch id={`status-${usuario.id}`}/>
+                <Label htmlFor={`status-${usuario.id}`}>Ativar/Desativar Acesso</Label>
+              </div>
+            </DropdownMenuLabel>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
   },
 ];
 
@@ -299,22 +348,29 @@ export function DataTable({
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {!initialized || loading ? (
-                  // 🦴 Enquanto estiver carregando → mostra skeleton
                   Array.from({ length: 10 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell>
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-full max-w-[300px]" />
+                        <Skeleton className="h-4 w-[150px]" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-4 w-full max-w-[200px]" />
+                        <Skeleton className="h-4 w-[450px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full lg:w-[100px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-full lg:w-[100px]" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-[50px]" />
                       </TableCell>
                     </TableRow>
                   ))
                 ) : table.getRowModel().rows?.length ? (
-                  // ✅ Quando terminar de carregar e há dados → renderiza linhas
                   <SortableContext
                     items={dataIds}
                     strategy={verticalListSortingStrategy}
@@ -324,7 +380,6 @@ export function DataTable({
                     ))}
                   </SortableContext>
                 ) : (
-                  // ⚠️ Quando terminar de carregar e não há dados
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}

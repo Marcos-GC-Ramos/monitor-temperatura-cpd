@@ -13,6 +13,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -27,18 +36,19 @@ export function AddUser() {
     email: "",
     senha: "",
     confSenha: "",
+    nivel_permissao: "",
   });
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { setForm({ ...form, [e.target.name]: e.target.value }); };
+
+  const handleNivelChange = (value: string) => { setForm({ ...form, nivel_permissao: value }); };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // 🔍 Validações básicas
-    if (!form.nome || !form.email || !form.senha || !form.confSenha) {
+    if (!form.nome || !form.email || !form.senha || !form.confSenha || !form.nivel_permissao) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -57,10 +67,10 @@ export function AddUser() {
       setLoading(true);
 
       const token = getToken(); 
-      await enviarUsuario(token!, form.nome, form.email, form.senha);
+      await enviarUsuario(token!, form.nome, form.email, form.senha, form.nivel_permissao, true);
       toast.success("Usuário adicionado com sucesso!");
 
-      setForm({ nome: "", email: "", senha: "", confSenha: "" });
+      setForm({ nome: "", email: "", senha: "", confSenha: "", nivel_permissao: "" });
       
       await carregarUsuarios();
     } catch (err: unknown) {
@@ -122,6 +132,22 @@ export function AddUser() {
               type="email"
               placeholder="exemplo@email.com"
             />
+          </div>
+
+          <div className="grid gap-3">
+            <Label htmlFor="permissao-add">Nível de Acesso</Label>
+            <Select onValueChange={handleNivelChange} value={form.nivel_permissao}>
+              <SelectTrigger className="w-full" id="permissao-add">
+                <SelectValue placeholder="Selecione uma permissão" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Nível de Acesso</SelectLabel>
+                  <SelectItem value="usuario">Usuário base</SelectItem>
+                  <SelectItem value="admin">Usuário Administrador</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex gap-3">

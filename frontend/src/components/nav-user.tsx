@@ -57,10 +57,11 @@ export function NavUser({} : {
       return null;
     };
 
-    setNome(getCookie('nome') || '');
-    setEmail(getCookie('email') || '');
+    const nomeCookie = getCookie('nome');
+    const emailCookie = getCookie('email');
 
-    console.log("teste");
+    setNome(nomeCookie ? decodeURIComponent(nomeCookie) : '');
+    setEmail(emailCookie ? decodeURIComponent(emailCookie) : '');
   }, []);
 
   return (

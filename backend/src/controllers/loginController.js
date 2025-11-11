@@ -22,5 +22,5 @@ export async function login(req, res) {
 
   const token = gerarToken({ id: usuario.id, email: usuario.email });
 
-  return res.json({token, email: usuario.email, nome: usuario.nome, });
+  return res.json({token, email: usuario.email, nome: usuario.nome, nivel_permissao: usuario.nivel_permissao});
 }
