@@ -31,3 +31,34 @@ export async function enviarUsuario(
   );
   return data;
 }
+
+export async function editarUsuario(
+  id: number,
+  token: string,
+  nome: string,
+  email: string,
+  nivel_permissao: string,
+  senha?: string,
+): Promise<Usuario> {
+  const { data } = await api.put(
+    `/usuarios`,
+    { id, nome, email, nivel_permissao, senha},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  return data;
+}
+
+export async function atualizarStatusUsuario(
+  token: string,
+  id: number,
+  status_acesso: boolean
+) {
+  const { data } = await api.put(
+    `/usuarios`,
+    { id, status_acesso },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  return data;
+}

@@ -63,7 +63,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
 
 // React Table (TanStack)
 import {
@@ -85,7 +84,9 @@ import {
 // Tipagem e schema
 import { Usuario } from "@/services/usuarioService";
 import { AddUser } from "./add-user";
+import { EditUser } from "./edit-user";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleStatusUser } from "./toggle-status";
 export type UsuarioType = Usuario;
 
 // As colunas da tabela
@@ -125,7 +126,8 @@ const columns: ColumnDef<Usuario>[] = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const usuario = row.original
+      const usuario = row.original;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -134,19 +136,31 @@ const columns: ColumnDef<Usuario>[] = [
               <MoreHorizontal />
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ações</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Edit Usuário</DropdownMenuItem>
+            
+            <EditUser 
+              usuario={{
+                id: row.original.id,
+                nome: row.original.nome,
+                email: row.original.email,
+                nivel_permissao: row.original.nivel_permissao
+              }}
+            />
+
+            <DropdownMenuSeparator />
+
             <DropdownMenuLabel>
-              <div className="flex items-center space-x-2 my-1">
-                <Switch id={`status-${usuario.id}`}/>
-                <Label htmlFor={`status-${usuario.id}`}>Ativar/Desativar Acesso</Label>
-              </div>
+              <ToggleStatusUser
+                iduser={usuario.id}
+                statusAtual={usuario.status_acesso}
+              />
             </DropdownMenuLabel>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
 ];

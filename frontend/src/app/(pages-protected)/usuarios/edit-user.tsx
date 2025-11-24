@@ -1,7 +1,7 @@
 "use client";
 
 import { getToken } from "@/lib/auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,60 +26,94 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner"
-import { enviarUsuario, editarUsuario } from "@/services/usuarioService";
+import { editarUsuario } from "@/services/usuarioService";
 import { useUsuariosContext } from "@/context/UsuariosContext";
 
-export function AddUser() {
-  const { carregarUsuarios } = useUsuariosContext();
-  const [form, setForm] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    confSenha: "",
-    nivel_permissao: "",
-  });
-  const [loading, setLoading] = useState(false);
+interface UsuarioProps {
+  id?: number;
+  nome?: string;
+  email?: string;
+  nivel_permissao?: string;
+}
+
+export function EditUser({ usuario }: { usuario?: UsuarioProps }) {
+    const { carregarUsuarios } = useUsuariosContext();
+
+    const [form, setForm] = useState({
+        id: 0,
+        nome: "",
+        email: "",
+        senha: "",
+        confSenha: "",
+        nivel_permissao: "",
+    });
+
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (usuario) {
+        setForm((prev) => ({
+            ...prev,
+            id: usuario.id ?? 0,
+            nome: usuario.nome ?? "",
+            email: usuario.email ?? "",
+            nivel_permissao: usuario.nivel_permissao ?? "",
+            senha: "",
+            confSenha: "",
+        }));
+        }
+    }, [usuario]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => { setForm({ ...form, [e.target.name]: e.target.value }); };
-
   const handleNivelChange = (value: string) => { setForm({ ...form, nivel_permissao: value }); };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // 🔍 Validações básicas
-    if (!form.nome || !form.email || !form.senha || !form.confSenha || !form.nivel_permissao) {
+    if (!form.nome || !form.email || !form.nivel_permissao) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
 
-    if (form.senha.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
+    // Se o usuário digitou uma nova senha, validar
+    if (form.senha || form.confSenha) {
+        if (form.senha.length < 6) {
+        toast.error("A senha deve ter pelo menos 6 caracteres.");
+        return;
+        }
 
-    if (form.senha !== form.confSenha) {
-      toast.error("As senhas não conferem.");
-      return;
+        if (form.senha !== form.confSenha) {
+        toast.error("As senhas não conferem.");
+        return;
+        }
     }
 
     try {
-      setLoading(true);
+        setLoading(true);
 
-      const token = getToken(); 
-      await enviarUsuario(token!, form.nome, form.email, form.senha, form.nivel_permissao, true);
-      toast.success("Usuário adicionado com sucesso!");
+        const token = getToken(); 
 
-      setForm({ nome: "", email: "", senha: "", confSenha: "", nivel_permissao: "" });
+        await editarUsuario(
+            form.id,
+            token!,
+            form.nome,
+            form.email,
+            form.nivel_permissao,
+            form.senha || undefined, 
+        );
+
+        toast.success("Dados do usuário atualizados com sucesso!");
       
-      await carregarUsuarios();
+        await carregarUsuarios();
     } catch (err: unknown) {
       console.error(err);
 
       const errorMessage =
         err instanceof Error
           ? err.message
-          : "Erro ao adicionar usuário. Verifique os dados e tente novamente.";
+          : "Erro ao salvar usuário. Verifique os dados e tente novamente.";
 
       toast.error(errorMessage);
     } finally {
@@ -90,21 +124,19 @@ export function AddUser() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button type="button" variant="default" size="sm" className="h-auto">
-          Add Usuário
+        <Button type="button" variant="default" size="sm" className="w-full ">
+          {usuario ? "Editar Usuário" : "Adicionar Usuário"}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px]">
-        <form
-          autoComplete="off"
-          className="flex flex-col gap-4"
-          onSubmit={handleSubmit}
-        >
+        <form autoComplete="off" className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Adicionar novo usuário</DialogTitle>
+            <DialogTitle>{usuario ? "Editar usuário" : "Adicionar novo usuário"}</DialogTitle>
             <DialogDescription>
-              Adicione as informações abaixo para adicionar um novo usuário.
+              {usuario
+                ? "Atualize as informações abaixo."
+                : "Adicione as informações abaixo para adicionar um novo usuário."}
             </DialogDescription>
           </DialogHeader>
 
@@ -115,7 +147,6 @@ export function AddUser() {
               name="nome"
               value={form.nome}
               onChange={handleChange}
-              autoComplete="off"
               type="text"
               placeholder="Primeiro e último nome"
             />
@@ -128,7 +159,6 @@ export function AddUser() {
               name="email"
               value={form.email}
               onChange={handleChange}
-              autoComplete="new-email"
               type="email"
               placeholder="exemplo@email.com"
             />
@@ -137,7 +167,7 @@ export function AddUser() {
           <div className="grid gap-3">
             <Label htmlFor="permissao-add">Nível de Acesso</Label>
             <Select onValueChange={handleNivelChange} value={form.nivel_permissao}>
-              <SelectTrigger className="w-full" id="permissao-add">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione uma permissão" />
               </SelectTrigger>
               <SelectContent>
@@ -152,28 +182,24 @@ export function AddUser() {
 
           <div className="flex gap-3">
             <div className="grid gap-3 flex-1">
-              <Label htmlFor="senha-add">Senha</Label>
+              <Label>Senha</Label>
               <Input
-                id="senha-add"
                 name="senha"
                 value={form.senha}
                 onChange={handleChange}
-                autoComplete="new-password"
                 type="password"
-                placeholder="12345678"
+                placeholder="Nova senha"
               />
             </div>
 
             <div className="grid gap-3 flex-1">
-              <Label htmlFor="conf-senha-add">Conf. Senha</Label>
+              <Label>Conf. Senha</Label>
               <Input
-                id="conf-senha-add"
                 name="confSenha"
                 value={form.confSenha}
                 onChange={handleChange}
-                autoComplete="new-password"
                 type="password"
-                placeholder="12345678"
+                placeholder="Confirmar senha"
               />
             </div>
           </div>
@@ -184,8 +210,13 @@ export function AddUser() {
                 Cancelar
               </Button>
             </DialogClose>
-            <Button variant="default" type="submit" disabled={loading}>
-              {loading ? <><Spinner /><span>Adicionando...</span></> : "Adicionar"}
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner />
+                  <span>Salvando...</span>
+                </>
+              ) : usuario ? "Salvar" : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>
